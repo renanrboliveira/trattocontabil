@@ -3,6 +3,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isPlatformAdminEmail } from "@/lib/platform-admin";
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const isPublicApi =
+    pathname.startsWith("/api/webhooks") ||
+    pathname.startsWith("/api/worker");
+
+  if (isPublicApi) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -30,12 +39,8 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
   const isAuthPage = pathname.startsWith("/login");
   const isAdminPage = pathname.startsWith("/admin");
-  const isPublicApi =
-    pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/api/worker");
   const isPlatformAdmin = isPlatformAdminEmail(user?.email);
 
   let hasEscritorio = false;
@@ -49,7 +54,7 @@ export async function updateSession(request: NextRequest) {
     hasEscritorio = !!membro?.escritorio_id;
   }
 
-  if (!user && !isAuthPage && !isPublicApi && pathname !== "/") {
+  if (!user && !isAuthPage && pathname !== "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
