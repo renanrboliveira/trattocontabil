@@ -77,6 +77,18 @@ Deploy:
 vercel --prod
 ```
 
+### Importar env vars (recomendado)
+
+```bash
+cd web
+cp vercel.production.env .env.vercel
+# editar .env.vercel — substituir REPLACE_* (Supabase, Meta, e-mail)
+```
+
+Vercel → **Settings → Environment Variables → Import .env** → arquivo `.env.vercel` → **Production** → Save → redeploy.
+
+Template versionado: `web/vercel.production.env`
+
 ### Cron (fila)
 
 `web/vercel.json` agenda `/api/worker/process` às 06:00 UTC e `/api/worker/regua` às 12:00 UTC (1×/dia cada — limite do plano **Hobby**). No Pro, pode voltar `process` para `* * * * *`. Handler aceita `Authorization: Bearer $CRON_SECRET` ou `x-worker-secret`.
