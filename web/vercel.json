@@ -4,7 +4,7 @@
   "crons": [
     {
       "path": "/api/worker/process",
-      "schedule": "* * * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/worker/regua",

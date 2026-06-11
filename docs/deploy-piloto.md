@@ -65,6 +65,10 @@ Configure variáveis em **Production** e **Preview**:
 | `WHATSAPP_APP_SECRET` | Meta |
 | `WHATSAPP_ACCESS_TOKEN` | Meta |
 | `WHATSAPP_PHONE_NUMBER_ID` | Meta |
+| `REGUA_MODE` | `dry_run` (início) ou `live` |
+| `ANTHROPIC_API_KEY` | Anthropic (PDF) |
+| `PDF_MODEL_PRIMARY` | `claude-sonnet-4-6` |
+| `PDF_MODEL_FALLBACK` | `claude-opus-4-8` |
 | `PLATFORM_ADMIN_EMAILS` | e-mail do super admin |
 
 Deploy:
@@ -75,7 +79,7 @@ vercel --prod
 
 ### Cron (fila)
 
-`web/vercel.json` agenda `GET /api/worker/process` a cada 5 min. O handler aceita `Authorization: Bearer $CRON_SECRET` (Vercel) ou header `x-worker-secret`.
+`web/vercel.json` agenda `/api/worker/process` às 06:00 UTC e `/api/worker/regua` às 12:00 UTC (1×/dia cada — limite do plano **Hobby**). No Pro, pode voltar `process` para `* * * * *`. Handler aceita `Authorization: Bearer $CRON_SECRET` ou `x-worker-secret`.
 
 ## 3. Webhooks em produção
 
@@ -86,6 +90,8 @@ vercel --prod
 | Worker manual | `POST /api/worker/process` | `x-worker-secret` |
 
 Meta: configurar callback URL e verify token = `WHATSAPP_VERIFY_TOKEN`.
+
+**Passo a passo sandbox (test number, destinatários, webhook):** `docs/piloto/deploy-prod-whatsapp-sandbox.md`
 
 E-mail: Resend/Postmark inbound → transformar payload para o contrato em `docs/spec-arquitetura.md` §7.2.
 
