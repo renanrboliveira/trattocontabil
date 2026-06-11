@@ -2,6 +2,12 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ingestExtrato } from "@/lib/pipeline/ingest";
+import {
+  matchClienteByRemetente,
+  resolveEscritorioBySlug,
+} from "@/lib/pipeline/routing";
+import { normalizeOptOutText } from "@/lib/regua/dates";
+import { sendSessionText } from "@/lib/whatsapp/send";
 
 function verifyMetaSignature(payload: string, signature: string | null): boolean {
   const secret = process.env.WHATSAPP_APP_SECRET;
@@ -63,12 +69,45 @@ export async function POST(request: Request) {
   const body = JSON.parse(rawBody);
   const admin = createAdminClient();
   const results: unknown[] = [];
+  const slug = process.env.DEFAULT_ESCRITORIO_SLUG ?? "e2-piloto";
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
       const messages = change.value?.messages ?? [];
       for (const message of messages) {
         const from = message.from as string;
+
+        if (message.type === "text" && message.text?.body) {
+          const normalized = normalizeOptOutText(message.text.body);
+          if (normalized === "parar") {
+            const escritorio = await resolveEscritorioBySlug(admin, slug);
+            const cliente = await matchClienteByRemetente(
+              admin,
+              escritorio.id,
+              from,
+              "whatsapp"
+            );
+
+            if (cliente) {
+              await admin
+                .from("clientes")
+                .update({ regua_opt_out_em: new Date().toISOString() })
+                .eq("id", cliente.clienteId);
+
+              const confirmacao = await sendSessionText({
+                to: from,
+                text: "Lembretes automáticos desativados. Para reativar, fale com seu contador.",
+              });
+
+              results.push({
+                type: "opt_out",
+                clienteId: cliente.clienteId,
+                ok: confirmacao.ok,
+              });
+            }
+            continue;
+          }
+        }
 
         if (message.type === "document" && message.document?.id) {
           const filename =

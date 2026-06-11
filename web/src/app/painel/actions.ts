@@ -15,7 +15,6 @@ export async function uploadExtratoAction(formData: FormData) {
   const file = formData.get("file");
   const clienteId = formData.get("cliente_id")?.toString();
   const bancoCodigo = formData.get("banco_codigo")?.toString();
-  const competencia = formData.get("competencia")?.toString();
 
   if (!(file instanceof File)) {
     return { ok: false as const, message: "Arquivo OFX obrigatório" };
@@ -37,13 +36,15 @@ export async function uploadExtratoAction(formData: FormData) {
     escritorioSlug: escritorio?.slug,
     clienteId: clienteId || undefined,
     bancoCodigo: bancoCodigo || undefined,
-    competencia: competencia || undefined,
   });
 
   revalidatePath("/painel");
 
   return {
-    ok: result.status === "convertido" || result.status === "duplicado",
+    ok:
+      result.status === "convertido" ||
+      result.status === "duplicado" ||
+      result.status === "recebido",
     ...result,
   };
 }
@@ -133,4 +134,88 @@ export async function exportAlterdataAction(extratoId: string) {
     exportId: result.exportId,
     filename: result.filename,
   };
+}
+
+export async function aprovarConversaoAction(extratoId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const escritorioId = await getUserEscritorioId();
+
+  if (!escritorioId || !user) {
+    return { ok: false as const, message: "Não autenticado" };
+  }
+
+  const { data: extrato } = await supabase
+    .from("extratos")
+    .select("id, status, transacao_count")
+    .eq("id", extratoId)
+    .eq("escritorio_id", escritorioId)
+    .maybeSingle();
+
+  if (!extrato) {
+    return { ok: false as const, message: "Extrato não encontrado" };
+  }
+
+  if (extrato.status !== "triagem") {
+    return { ok: false as const, message: "Extrato não está em triagem" };
+  }
+
+  if ((extrato.transacao_count ?? 0) === 0) {
+    return { ok: false as const, message: "Nenhuma transação para aprovar" };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("extratos")
+    .update({
+      status: "convertido",
+      aprovado_por: user.id,
+      aprovado_em: new Date().toISOString(),
+      triagem_motivo: null,
+    })
+    .eq("id", extratoId);
+
+  if (error) {
+    return { ok: false as const, message: error.message };
+  }
+
+  revalidatePath(`/painel/extratos/${extratoId}`);
+  revalidatePath("/painel");
+
+  return { ok: true as const, message: "Conversão aprovada" };
+}
+
+export async function cobrarAgoraAction(clienteId: string, competenciaId: string) {
+  const escritorioId = await getUserEscritorioId();
+  if (!escritorioId) {
+    return { ok: false as const, message: "Não autenticado" };
+  }
+
+  const supabase = await createClient();
+  const { data: competencia } = await supabase
+    .from("competencias")
+    .select("id, ano, mes")
+    .eq("id", competenciaId)
+    .eq("escritorio_id", escritorioId)
+    .maybeSingle();
+
+  if (!competencia) {
+    return { ok: false as const, message: "Competência não encontrada" };
+  }
+
+  const admin = createAdminClient();
+  const { cobrarClienteAgora } = await import("@/lib/regua/run");
+  const result = await cobrarClienteAgora(admin, {
+    escritorioId,
+    clienteId,
+    competenciaId: competencia.id,
+    competenciaAno: competencia.ano,
+    competenciaMes: competencia.mes,
+  });
+
+  revalidatePath("/painel");
+
+  return result;
 }

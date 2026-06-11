@@ -52,6 +52,16 @@ Antes de incluir extrato no eval set:
 - [ ] Nunca logar conteúdo de extrato em plain text
 - [ ] Acesso ao painel autenticado por escritório
 
+## Suboperadores
+
+| Suboperador | Finalidade | Dados trafegados | Retenção / treinamento |
+|---|---|---|---|
+| **Anthropic** (API Claude) | Conversão de extratos PDF em transações estruturadas (Etapa 2b) | Conteúdo do PDF enviado na requisição de conversão; metadados de uso (tokens) | Processamento sob demanda; política comercial padrão da API **sem retenção para treinamento de modelos**. DPA/contrato a formalizar antes de produção em escala. |
+| Supabase | Postgres, Auth, Storage | Extratos armazenados, transações, metadados | Conforme contrato Supabase |
+| Vercel | Hospedagem e execução do worker/cron | Logs operacionais (sem conteúdo de extrato) | Conforme contrato Vercel |
+
+O escritório (controlador) deve informar clientes finais que extratos em PDF podem ser processados por provedor de IA para extração de dados contábeis, nos termos do opt-in acima.
+
 ## Incidentes
 
 Registrar em tabela interna: data, escopo, ação, notificação ao controlador (escritório).

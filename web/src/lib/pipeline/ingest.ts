@@ -19,6 +19,7 @@ import {
   matchClienteByRemetente,
   resolveEscritorioBySlug,
 } from "@/lib/pipeline/routing";
+import { checkPdfGuards } from "@/lib/pdf/guards";
 import { processExtratoJob } from "@/lib/pipeline/process";
 
 export type IngestInput = {
@@ -63,6 +64,7 @@ async function persistExtrato(
     fileHash: string;
     idempotencyKey: string;
     status: "recebido" | "triagem";
+    triagemMotivo?: string;
     clienteId?: string;
     clienteBancoId?: string;
     cnpj?: string;
@@ -102,6 +104,7 @@ async function persistExtrato(
       remetente: params.input.remetente ?? null,
       banco_codigo: params.bancoCodigo ?? null,
       banco_nome: params.bancoNome ?? null,
+      triagem_motivo: params.triagemMotivo ?? null,
     })
     .select("id")
     .single();
@@ -162,7 +165,7 @@ export async function ingestExtrato(
   let clienteId = input.clienteId;
   let cnpj: string | undefined;
   let clienteBancoId: string | undefined;
-  let needsTriagem = isPdf;
+  let needsTriagem = false;
   let bancoCodigo = input.bancoCodigo;
   let bancoNome: string | undefined;
 
@@ -260,6 +263,15 @@ export async function ingestExtrato(
     ? (input.mime ?? "application/pdf")
     : (input.mime ?? "application/x-ofx");
 
+  let triagemMotivo: string | undefined;
+  if (isPdf) {
+    const guard = checkPdfGuards(input.buffer);
+    if (!guard.ok) {
+      needsTriagem = true;
+      triagemMotivo = guard.motivo;
+    }
+  }
+
   const persisted = await persistExtrato(admin, {
     extratoId,
     escritorioId: escritorio.id,
@@ -268,6 +280,7 @@ export async function ingestExtrato(
     fileHash,
     idempotencyKey,
     status: needsTriagem ? "triagem" : "recebido",
+    triagemMotivo,
     clienteId,
     clienteBancoId,
     bancoCodigo,
@@ -280,11 +293,23 @@ export async function ingestExtrato(
   }
 
   if (isPdf) {
+    if (needsTriagem) {
+      return {
+        extratoId: persisted.extratoId,
+        status: "triagem",
+        message: triagemMotivo ?? "PDF em triagem",
+      };
+    }
+
+    await admin.from("pipeline_jobs").insert({
+      extrato_id: persisted.extratoId,
+      status: "pending",
+    });
+
     return {
       extratoId: persisted.extratoId,
-      status: "triagem",
-      message:
-        "PDF recebido e armazenado — conversão automática na Etapa 2b",
+      status: "recebido",
+      message: "PDF recebido — conversão em processamento",
     };
   }
 

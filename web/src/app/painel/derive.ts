@@ -21,6 +21,7 @@ export type PendenciaStatus = "falta" | "triagem" | "erro";
 
 export type Pendencia = {
   key: string;
+  clienteId: string;
   cliente: string;
   cnpj: string | null;
   banco: string;
@@ -44,6 +45,7 @@ export function derivePendencias(
       totalPares += 1;
       pendencias.push({
         key: cliente.id,
+        clienteId: cliente.id,
         cliente: cliente.razao_social,
         cnpj: cliente.cnpj,
         banco: "—",
@@ -70,6 +72,7 @@ export function derivePendencias(
       if (!match) {
         pendencias.push({
           key: `${cliente.id}-${banco.id}`,
+          clienteId: cliente.id,
           cliente: cliente.razao_social,
           cnpj: cliente.cnpj,
           banco: banco.banco_nome ?? "?",
@@ -85,6 +88,7 @@ export function derivePendencias(
       if (match.status === "triagem" || match.status === "erro") {
         pendencias.push({
           key: `${cliente.id}-${banco.id}`,
+          clienteId: cliente.id,
           cliente: cliente.razao_social,
           cnpj: cliente.cnpj,
           banco: banco.banco_nome ?? "?",
@@ -101,6 +105,7 @@ export function derivePendencias(
     if (extrato.status !== "triagem" && extrato.status !== "erro") continue;
     pendencias.push({
       key: extrato.id,
+      clienteId: extrato.cliente_id ?? extrato.id,
       cliente:
         unwrapRelation(extrato.clientes)?.razao_social ?? "Remetente não identificado",
       cnpj: null,

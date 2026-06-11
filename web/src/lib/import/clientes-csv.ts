@@ -8,6 +8,8 @@ export const CSV_COLUMNS = [
   "razao_social",
   "telefone",
   "email",
+  "contato_nome",
+  "regua_opt_in",
   "banco_codigo",
   "banco_nome",
   "conta_ref",
@@ -19,6 +21,8 @@ export type ClienteCsvRow = {
   razao_social: string;
   telefone?: string;
   email?: string;
+  contato_nome?: string;
+  regua_opt_in?: boolean;
   banco_codigo?: string;
   banco_nome?: string;
   conta_ref: string;
@@ -91,6 +95,14 @@ function isValidCnpj(cnpj: string): boolean {
   return cnpj.length === 14;
 }
 
+function parseReguaOptIn(raw: string): boolean | undefined {
+  const value = raw.trim().toLowerCase();
+  if (!value) return undefined;
+  if (["1", "true", "sim", "s", "yes", "y"].includes(value)) return true;
+  if (["0", "false", "nao", "não", "n", "no"].includes(value)) return false;
+  return undefined;
+}
+
 export function previewClientesCsv(content: string): ImportPreview {
   const lines = content
     .replace(/^\uFEFF/, "")
@@ -161,6 +173,8 @@ export function previewClientesCsv(content: string): ImportPreview {
 
     const telefoneRaw = get("telefone");
     const emailRaw = get("email");
+    const contatoNome = get("contato_nome") || undefined;
+    const reguaOptIn = parseReguaOptIn(get("regua_opt_in"));
 
     rows.push({
       line: lineNo,
@@ -168,6 +182,8 @@ export function previewClientesCsv(content: string): ImportPreview {
       razao_social,
       telefone: telefoneRaw ? normalizePhone(telefoneRaw) : undefined,
       email: emailRaw ? normalizeEmail(emailRaw) : undefined,
+      contato_nome: contatoNome,
+      regua_opt_in: reguaOptIn,
       banco_codigo: banco_codigo?.toLowerCase(),
       banco_nome,
       conta_ref: get("conta_ref") || "principal",
@@ -196,6 +212,8 @@ export function groupRowsByCnpj(rows: ClienteCsvRow[]) {
       razao_social: string;
       telefone?: string;
       email?: string;
+      contato_nome?: string;
+      regua_opt_in?: boolean;
       bancos: Array<{
         banco_codigo: string;
         banco_nome: string;
@@ -212,12 +230,16 @@ export function groupRowsByCnpj(rows: ClienteCsvRow[]) {
         razao_social: row.razao_social,
         telefone: row.telefone,
         email: row.email,
+        contato_nome: row.contato_nome,
+        regua_opt_in: row.regua_opt_in,
         bancos: [],
       });
     } else {
       existing.razao_social = row.razao_social;
       if (row.telefone) existing.telefone = row.telefone;
       if (row.email) existing.email = row.email;
+      if (row.contato_nome) existing.contato_nome = row.contato_nome;
+      if (row.regua_opt_in !== undefined) existing.regua_opt_in = row.regua_opt_in;
     }
 
     if (row.banco_codigo && row.banco_nome) {

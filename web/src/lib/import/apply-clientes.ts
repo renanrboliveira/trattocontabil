@@ -59,6 +59,8 @@ export async function applyClientesImport(
           razao_social: data.razao_social,
           telefone: data.telefone ?? null,
           email: data.email ?? null,
+          contato_nome: data.contato_nome ?? null,
+          regua_opt_in: data.regua_opt_in ?? false,
           ativo: true,
         })
         .eq("id", existing.id);
@@ -78,6 +80,8 @@ export async function applyClientesImport(
           razao_social: data.razao_social,
           telefone: data.telefone ?? null,
           email: data.email ?? null,
+          contato_nome: data.contato_nome ?? null,
+          regua_opt_in: data.regua_opt_in ?? false,
           ativo: true,
         })
         .select("id")
