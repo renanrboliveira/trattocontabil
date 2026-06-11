@@ -34,7 +34,7 @@ export default async function LoginPage({
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)] text-base font-bold text-white shadow-md">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#15705f] to-[var(--accent)] text-base font-bold text-white shadow-md">
             EP
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
@@ -45,7 +45,7 @@ export default async function LoginPage({
           </p>
         </div>
 
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[var(--shadow-md)]">
+        <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[var(--shadow-md)]">
           {params.error === "sem-escritorio" ? (
             <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
               Sua conta existe, mas não está vinculada a um escritório. Peça ao
