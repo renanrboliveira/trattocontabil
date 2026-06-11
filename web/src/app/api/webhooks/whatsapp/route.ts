@@ -5,7 +5,8 @@ import { ingestExtrato } from "@/lib/pipeline/ingest";
 
 function verifyMetaSignature(payload: string, signature: string | null): boolean {
   const secret = process.env.WHATSAPP_APP_SECRET;
-  if (!secret) return true;
+  // Fail closed: sem secret configurado, nenhuma requisição é aceita.
+  if (!secret) return false;
   if (!signature) return false;
   const expected = `sha256=${crypto
     .createHmac("sha256", secret)
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
 
-  if (process.env.WHATSAPP_APP_SECRET && !verifyMetaSignature(rawBody, signature)) {
+  if (!verifyMetaSignature(rawBody, signature)) {
     return NextResponse.json({ error: "Assinatura inválida" }, { status: 401 });
   }
 

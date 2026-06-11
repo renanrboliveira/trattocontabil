@@ -65,7 +65,9 @@ export default async function ExtratoDetailPage({
           <p className="text-sm text-[var(--muted-foreground)]">
             Recebido em{" "}
             <span className="font-medium text-[var(--foreground)]">
-              {new Date(extrato.created_at).toLocaleString("pt-BR")}
+              {new Date(extrato.created_at).toLocaleString("pt-BR", {
+                timeZone: "America/Sao_Paulo",
+              })}
             </span>
           </p>
 
