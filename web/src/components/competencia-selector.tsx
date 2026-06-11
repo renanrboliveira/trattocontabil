@@ -57,7 +57,7 @@ export function CompetenciaSelector({
   return (
     <div className="relative flex items-center gap-1">
       {maisAntiga ? (
-        <Link href={`/painel?comp=${maisAntiga.param}`} className={arrowClass} aria-label="Competencia anterior">
+        <Link href={`/painel?comp=${maisAntiga.param}`} className={arrowClass} aria-label="Competência anterior">
           ◀
         </Link>
       ) : (
@@ -73,7 +73,7 @@ export function CompetenciaSelector({
       </button>
 
       {maisRecente ? (
-        <Link href={`/painel?comp=${maisRecente.param}`} className={arrowClass} aria-label="Proxima competencia">
+        <Link href={`/painel?comp=${maisRecente.param}`} className={arrowClass} aria-label="Próxima competência">
           ▶
         </Link>
       ) : (
@@ -89,7 +89,7 @@ export function CompetenciaSelector({
           />
           <div className="absolute left-8 top-9 z-20 w-[290px] overflow-hidden rounded-[10px] border border-[var(--border)] bg-white shadow-[0_12px_32px_rgb(13_31_27_/_0.16)]">
             <p className="border-b border-[var(--border)] bg-[#f6faf8] px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
-              Competencias
+              Competências
             </p>
             {opcoes.map((opcao) => (
               <Link
