@@ -12,9 +12,9 @@ export default async function NovoEscritorioPage() {
 
   return (
     <AppShell
-      eyebrow="Super admin"
+      office={{ nome: "Super admin" }}
+      nav={[{ items: [{ label: "← Escritórios", href: "/admin", icon: "▤" }] }]}
       title="Novo escritório"
-      nav={[{ href: "/admin", label: "← Escritórios" }]}
     >
       <Card title="Dados do escritório" className="max-w-xl">
         <form action={createEscritorioAction} className="space-y-5">

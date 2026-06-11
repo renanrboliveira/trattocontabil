@@ -39,10 +39,12 @@ export default async function EscritorioAdminPage({
 
   return (
     <AppShell
-      eyebrow="Super admin"
+      office={{ nome: "Super admin" }}
+      nav={[{ items: [{ label: "← Escritórios", href: "/admin", icon: "▤" }] }]}
       title={escritorio.nome}
-      subtitle={escritorio.slug}
-      nav={[{ href: "/admin", label: "← Escritórios" }]}
+      topbarExtra={
+        <span className="font-mono text-xs text-[var(--muted)]">{escritorio.slug}</span>
+      }
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Membros do escritório">

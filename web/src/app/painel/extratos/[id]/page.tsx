@@ -45,10 +45,19 @@ export default async function ExtratoDetailPage({
 
   return (
     <AppShell
-      eyebrow="Extrato"
+      office={{ nome: "Extrato Pronto" }}
+      nav={[
+        {
+          items: [{ label: "← Voltar ao painel", href: "/painel", icon: "▦" }],
+        },
+      ]}
       title={`${cliente?.razao_social ?? "Remetente não identificado"} · ${extrato.banco_nome ?? "?"}`}
-      subtitle={`${extrato.arquivo_nome} · ${comp ? `${String(comp.mes).padStart(2, "0")}/${comp.ano}` : "?"} · ${extrato.transacao_count} transações`}
-      nav={[{ href: "/painel", label: "← Voltar ao painel" }]}
+      topbarExtra={
+        <span className="hidden truncate font-mono text-xs text-[var(--muted)] sm:inline">
+          {extrato.arquivo_nome} · {comp ? `${String(comp.mes).padStart(2, "0")}/${comp.ano}` : "?"} ·{" "}
+          {extrato.transacao_count} tx
+        </span>
+      }
     >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">

@@ -63,10 +63,34 @@ export default async function PainelPage() {
 
   return (
     <AppShell
-      eyebrow="Extrato Pronto"
-      title={escritorio?.nome ?? "Painel"}
-      subtitle={`Competência ${competenciaLabel} · piloto E2`}
-      actions={<SignOutButton action={signOutAction} />}
+      office={{
+        nome: escritorio?.nome ?? "Painel",
+        meta: `${clientes?.length ?? 0} clientes ativos`,
+      }}
+      nav={[
+        {
+          label: "Operação",
+          items: [
+            { label: "Painel", href: "/painel", icon: "▦", active: true },
+            { label: "Extratos", icon: "⇪", badge: triagem },
+            { label: "Exportações", icon: "⇲" },
+          ],
+        },
+        {
+          label: "Cadastro",
+          items: [
+            { label: "Clientes", icon: "▤" },
+            { label: "Configurações", icon: "⚙" },
+          ],
+        },
+      ]}
+      title="Painel"
+      topbarExtra={
+        <span className="rounded-md border border-[#c5ddd6] bg-[var(--accent-soft)] px-2.5 py-1 font-mono text-xs font-medium text-[var(--accent)]">
+          competência {competenciaLabel}
+        </span>
+      }
+      signOut={<SignOutButton action={signOutAction} />}
     >
       <div className="space-y-8">
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

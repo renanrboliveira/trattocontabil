@@ -26,18 +26,23 @@ export default async function AdminPage() {
 
   return (
     <AppShell
-      eyebrow="Super admin"
+      office={{ nome: "Super admin", meta: user.email ?? undefined }}
+      nav={[
+        {
+          items: [
+            { label: "Escritórios", href: "/admin", icon: "▤", active: true },
+            { label: "Painel", href: "/painel", icon: "▦" },
+          ],
+        },
+      ]}
       title="Escritórios"
-      subtitle={`Logado como ${user.email}`}
-      nav={[{ href: "/painel", label: "Painel" }]}
-      actions={<SignOutButton action={signOutAction} />}
-    >
-      <div className="mb-6 flex items-center justify-end">
+      actions={
         <Link href="/admin/escritorios/novo">
           <Button>Novo escritório</Button>
         </Link>
-      </div>
-
+      }
+      signOut={<SignOutButton action={signOutAction} />}
+    >
       <DataTable>
         <DataTableHead>
           <DataTableTh>Nome</DataTableTh>
