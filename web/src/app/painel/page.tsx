@@ -70,10 +70,10 @@ export default async function PainelPage() {
     >
       <div className="space-y-8">
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Competência ativa" value={competenciaLabel} accent="teal" />
-          <StatCard label="Convertidos" value={String(convertidos)} accent="emerald" />
-          <StatCard label="Exportados" value={String(exportados)} accent="slate" />
-          <StatCard label="Aguardando triagem" value={String(triagem)} accent="amber" />
+          <StatCard label="Competência ativa" value={competenciaLabel} />
+          <StatCard label="Convertidos" value={String(convertidos)} />
+          <StatCard label="Exportados" value={String(exportados)} />
+          <StatCard label="Aguardando triagem" value={String(triagem)} metaTone="warn" />
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
