@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 
 const controlClass =
-  "mt-1.5 w-full rounded-lg border border-[var(--border-strong)] bg-white px-3.5 py-2.5 text-[15px] text-[var(--foreground)] shadow-sm transition-colors placeholder:text-slate-400 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20";
+  "mt-1.5 w-full rounded-[7px] border border-[var(--border-strong)] bg-white px-3.5 py-2.5 text-sm text-[var(--foreground)] shadow-sm transition-colors placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20";
 
 export function Field({
   label,
@@ -18,7 +18,7 @@ export function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="block text-sm font-semibold text-[var(--foreground)]"
+        className="block text-[13px] font-semibold text-[var(--foreground)]"
       >
         {label}
       </label>

@@ -1,50 +1,47 @@
-const statusConfig: Record<
-  string,
-  { label: string; className: string }
-> = {
+const statusConfig: Record<string, { label: string; className: string }> = {
   convertido: {
     label: "Convertido",
-    className: "bg-emerald-50 text-emerald-800 ring-emerald-600/20",
+    className: "bg-[#e3f2e9] text-[#15633a]",
   },
   exportado: {
     label: "Exportado",
-    className: "bg-violet-50 text-violet-800 ring-violet-600/20",
+    className: "bg-[var(--accent-soft)] text-[var(--accent)]",
   },
   recebido: {
     label: "Recebido",
-    className: "bg-sky-50 text-sky-800 ring-sky-600/20",
+    className: "bg-[#e6eefb] text-[#1e51b8]",
   },
   processando: {
     label: "Processando",
-    className: "bg-amber-50 text-amber-800 ring-amber-600/20",
+    className: "bg-[#faf0dc] text-[var(--amber)]",
   },
   duplicado: {
     label: "Duplicado",
-    className: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    className: "bg-[#edf1ef] text-[var(--muted)]",
   },
   erro: {
     label: "Erro",
-    className: "bg-red-50 text-red-800 ring-red-600/20",
+    className: "bg-[#fbe8e8] text-[#b42323]",
   },
   triagem: {
     label: "Triagem",
-    className: "bg-orange-50 text-orange-800 ring-orange-600/20",
+    className: "bg-[#faf0dc] text-[var(--amber)]",
   },
   falta: {
     label: "Falta",
-    className: "bg-slate-50 text-slate-600 ring-slate-400/20",
+    className: "bg-[#edf1ef] text-[var(--muted)]",
   },
 };
 
 export function StatusBadge({ status }: { status: string }) {
   const config = statusConfig[status] ?? {
     label: status,
-    className: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    className: "bg-[#edf1ef] text-[var(--muted)]",
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${config.className}`}
+      className={`inline-flex items-center rounded-md px-2.5 py-[3px] text-[11.5px] font-semibold ${config.className}`}
     >
       {config.label}
     </span>
