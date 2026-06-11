@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
 
 export type NavItem = {
   label: string;
@@ -14,7 +13,7 @@ export type NavItem = {
 
 export type NavGroup = { label?: string; items: NavItem[] };
 
-function SidebarNavLink({ item }: { item: NavItem }) {
+function SidebarNavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const base =
     "flex items-center gap-2.5 rounded-[7px] px-2.5 py-2 text-[13.5px] font-medium";
   const inner = (
@@ -47,6 +46,7 @@ function SidebarNavLink({ item }: { item: NavItem }) {
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={`${base} ${
         item.active
           ? "bg-[var(--sidebar-hover)] font-semibold text-white"
@@ -62,10 +62,12 @@ function SidebarContent({
   office,
   nav,
   signOut,
+  onNavigate,
 }: {
   office: { nome: string; meta?: string };
   nav: NavGroup[];
   signOut?: ReactNode;
+  onNavigate?: () => void;
 }) {
   return (
     <>
@@ -92,7 +94,7 @@ function SidebarContent({
               </p>
             )}
             {group.items.map((item) => (
-              <SidebarNavLink key={item.label} item={item} />
+              <SidebarNavLink key={item.label} item={item} onNavigate={onNavigate} />
             ))}
           </div>
         ))}
@@ -128,7 +130,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen w-full bg-[var(--background)]">
-      <aside className="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col bg-[var(--sidebar)] lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col overflow-y-auto bg-[var(--sidebar)] lg:flex">
         <SidebarContent office={office} nav={nav} signOut={signOut} />
       </aside>
 
@@ -139,8 +141,8 @@ export function AppShell({
             className="absolute inset-0 bg-black/40"
             onClick={() => setDrawerOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-[232px] flex-col bg-[var(--sidebar)]">
-            <SidebarContent office={office} nav={nav} signOut={signOut} />
+          <aside className="absolute inset-y-0 left-0 flex w-[232px] flex-col overflow-y-auto bg-[var(--sidebar)]">
+            <SidebarContent office={office} nav={nav} signOut={signOut} onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </div>
       )}
@@ -172,13 +174,12 @@ export function AppShell({
 export function SignOutButton({ action }: { action: () => Promise<void> }) {
   return (
     <form action={action}>
-      <Button
+      <button
         type="submit"
-        variant="ghost"
-        className="w-full justify-start px-2.5 py-2 text-[var(--sidebar-text)] hover:bg-[var(--sidebar-hover)] hover:text-white"
+        className="inline-flex w-full items-center justify-start gap-2 rounded-[7px] px-2.5 py-2 text-[13.5px] font-semibold text-[var(--sidebar-text)] transition-colors hover:bg-[var(--sidebar-hover)] hover:text-white"
       >
         Sair
-      </Button>
+      </button>
     </form>
   );
 }
