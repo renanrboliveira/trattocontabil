@@ -1,0 +1,24 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+dist/
+*.log
+.vercel
+
+# Eval set — dados reais de extrato (nunca commitar)
+docs/knowledge/eval-set/
+**/sample-import.csv
+
+# App
+web/node_modules/
+web/.next/
+web/.env.local
+
+# Supabase local
+supabase/.temp/
+
+# Superpowers visual companion (sessões de brainstorm)
+.superpowers/

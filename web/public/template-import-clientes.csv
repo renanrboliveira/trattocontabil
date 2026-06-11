@@ -1,0 +1,4 @@
+cnpj,razao_social,telefone,email,banco_codigo,banco_nome,conta_ref
+12345678000199,Empresa Alpha Ltda,5511999990001,alpha@cliente.example.com,itau,Itaú,cc-001
+12345678000199,Empresa Alpha Ltda,5511999990001,alpha@cliente.example.com,bradesco,Bradesco,cc-001
+98765432000188,Beta Comércio ME,5511999990002,beta@cliente.example.com,nubank,Nubank,cc-001
