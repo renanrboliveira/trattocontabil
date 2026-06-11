@@ -9,6 +9,7 @@ Etapa 4 do plano piloto: "Cron de cobrança agregada + rollover mensal — clien
 
 Decisões de brainstorm aprovadas:
 - **Meta inexistente ainda** (sem WABA/número/templates) → régua nasce em **dry-run** (`REGUA_MODE`); ligar = trocar env var. Item externo do Renan: criar Meta Business/WABA e submeter os 2 templates (gargalo do calendário de 01/ago).
+- **Caminho de teste em 3 níveis (sem CNPJ até o nível 2):** (1) dry-run, sem Meta; (2) número de teste do app de developers.facebook.com — WABA/número gratuitos sem verificação de empresa, envio para até 5 destinatários pré-verificados, valida `REGUA_MODE=live` ponta a ponta trocando só env vars; (3) número real sem verificação completa — limite reduzido (~250 conversas/dia, display name pendente; confirmar no console), suficiente para o piloto de 5-10 clientes. Verificação por CNPJ destrava escala e nome verificado.
 - Escopo: **só cobrança + PARAR**. Confirmação de recebimento (template 2, SIM/NÃO) fica para etapa futura.
 - Arquitetura: **derivação on-the-fly no cron** (reuso da lógica de pendências do painel) + log de cobranças como outbox simples. Checklist materializado (`checklist_pendencias`) anotado para escala, não agora.
 
