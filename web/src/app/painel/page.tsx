@@ -240,7 +240,7 @@ export default async function PainelPage({
           />
           <StatCard label="Exportados" value={String(exportados)} meta="Alterdata CSV" />
           <StatCard
-            label="Pendencias"
+            label="Pendências"
             value={String(pendencias.length)}
             meta={`${countTriagem} triagem · ${countFalta} falta · ${countErro} erro`}
             metaTone="warn"
@@ -274,7 +274,7 @@ export default async function PainelPage({
         </div>
 
         <Card
-          title="Pendencias da competencia"
+          title="Pendências da competência"
           description={`${selecionadaLabel} — só o que precisa de ação: quem não mandou, o que travou.`}
           actions={
             <form method="get" action="/painel" className="flex items-center gap-2">
@@ -299,7 +299,7 @@ export default async function PainelPage({
           {pagina.length === 0 ? (
             <p className="py-6 text-center text-sm text-[var(--muted)]">
               {pendencias.length === 0
-                ? "Nenhuma pendencia nesta competencia. Tudo em dia."
+                ? "Nenhuma pendência nesta competência. Tudo em dia."
                 : "Nada encontrado com esses filtros."}
             </p>
           ) : (
@@ -344,7 +344,7 @@ export default async function PainelPage({
                 label={`Mostrando ${(pageNum - 1) * PAGE_SIZE + 1}–${Math.min(
                   pageNum * PAGE_SIZE,
                   filtradas.length
-                )} de ${filtradas.length} pendencias`}
+                )} de ${filtradas.length} pendências`}
                 hrefForPage={(p) =>
                   painelHref({ comp: selecionadaParam, f, q, page: p })
                 }
@@ -359,7 +359,7 @@ export default async function PainelPage({
         >
           {recentes.length === 0 ? (
             <p className="py-6 text-center text-sm text-[var(--muted)]">
-              Nenhum extrato nesta competencia. Envie um OFX acima ou via webhook.
+              Nenhum extrato nesta competência. Envie um OFX acima ou via webhook.
             </p>
           ) : (
             <DataTable>
