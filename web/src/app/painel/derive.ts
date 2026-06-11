@@ -11,6 +11,7 @@ export type ClienteComBancos = {
 
 export type ExtratoDaCompetencia = {
   id: string;
+  cliente_id: string | null;
   status: string;
   banco_nome: string | null;
   clientes: { razao_social: string } | { razao_social: string }[] | null;
@@ -56,6 +57,9 @@ export function derivePendencias(
       totalPares += 1;
       const match = extratos.find((extrato) => {
         if (usados.has(extrato.id)) return false;
+        if (extrato.cliente_id) {
+          return extrato.cliente_id === cliente.id && extrato.banco_nome === banco.banco_nome;
+        }
         const extratoCliente = unwrapRelation(extrato.clientes);
         return (
           extratoCliente?.razao_social === cliente.razao_social &&

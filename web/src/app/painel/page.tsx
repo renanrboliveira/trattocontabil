@@ -87,6 +87,7 @@ export default async function PainelPage({
 
   let extratos: {
     id: string;
+    cliente_id: string | null;
     status: string;
     canal: string;
     arquivo_nome: string;
@@ -99,7 +100,7 @@ export default async function PainelPage({
     const { data } = await supabase
       .from("extratos")
       .select(
-        "id, status, canal, arquivo_nome, transacao_count, created_at, banco_nome, clientes(razao_social)"
+        "id, cliente_id, status, canal, arquivo_nome, transacao_count, created_at, banco_nome, clientes(razao_social)"
       )
       .eq("escritorio_id", escritorioId)
       .eq("competencia_id", selecionada.id)
@@ -112,11 +113,18 @@ export default async function PainelPage({
     extratos
   );
 
-  const countFalta = pendencias.filter((p) => p.status === "falta").length;
-  const countTriagem = pendencias.filter((p) => p.status === "triagem").length;
-  const countErro = pendencias.filter((p) => p.status === "erro").length;
+  // Contagens totais — usadas em StatCard e badge da sidebar (sem filtro de busca)
+  const totalFalta = pendencias.filter((p) => p.status === "falta").length;
+  const totalTriagem = pendencias.filter((p) => p.status === "triagem").length;
+  const totalErro = pendencias.filter((p) => p.status === "erro").length;
 
-  const filtradas = filterPendencias(pendencias, f, q);
+  // Aplica a busca primeiro; chips refletem o subconjunto buscado
+  const buscadas = filterPendencias(pendencias, undefined, q);
+  const countFalta = buscadas.filter((p) => p.status === "falta").length;
+  const countTriagem = buscadas.filter((p) => p.status === "triagem").length;
+  const countErro = buscadas.filter((p) => p.status === "erro").length;
+
+  const filtradas = filterPendencias(buscadas, f, undefined);
   const pageCount = Math.max(1, Math.ceil(filtradas.length / PAGE_SIZE));
   const pageNum = Math.min(Math.max(1, Number(page) || 1), pageCount);
   const pagina = filtradas.slice((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE);
@@ -148,7 +156,7 @@ export default async function PainelPage({
   const chips: Chip[] = [
     {
       label: "Todas",
-      count: pendencias.length,
+      count: buscadas.length,
       href: painelHref({ comp: selecionadaParam, q }),
       active: !f,
     },
@@ -187,7 +195,7 @@ export default async function PainelPage({
           label: "Operação",
           items: [
             { label: "Painel", href: "/painel", icon: "▦", active: true },
-            { label: "Extratos", icon: "⇪", badge: countTriagem + countErro },
+            { label: "Extratos", icon: "⇪", badge: totalTriagem + totalErro },
             { label: "Exportações", icon: "⇲" },
           ],
         },
@@ -242,7 +250,7 @@ export default async function PainelPage({
           <StatCard
             label="Pendências"
             value={String(pendencias.length)}
-            meta={`${countTriagem} triagem · ${countFalta} falta · ${countErro} erro`}
+            meta={`${totalTriagem} triagem · ${totalFalta} falta · ${totalErro} erro`}
             metaTone="warn"
           />
         </section>
@@ -386,7 +394,7 @@ export default async function PainelPage({
                         {extrato.transacao_count} tx
                       </DataTableTd>
                       <DataTableTd className="whitespace-nowrap font-mono text-xs text-[var(--muted)]">
-                        {new Date(extrato.created_at).toLocaleString("pt-BR")}
+                        {new Date(extrato.created_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
                       </DataTableTd>
                       <DataTableTd align="right">
                         <Link
