@@ -202,6 +202,7 @@ export type RunReguaResult = {
   dryRun: number;
   falhas: number;
   skippedCadencia: boolean;
+  ultimoErro?: string;
 };
 
 export async function runRegua(
@@ -322,6 +323,7 @@ export async function runRegua(
 
       if (insertError || !inserted) {
         result.falhas += 1;
+        result.ultimoErro = insertError?.message ?? "Falha ao registrar cobrança";
         continue;
       }
 
@@ -349,14 +351,16 @@ export async function runRegua(
         if (status === "enviada") result.enviadas += 1;
         else result.dryRun += 1;
       } else {
+        const erro = sendResult.error ?? "Falha no envio";
         await admin
           .from("cobrancas")
           .update({
             status: "falha",
-            erro: sendResult.error ?? "Falha no envio",
+            erro,
           })
           .eq("id", inserted.id);
         result.falhas += 1;
+        result.ultimoErro = erro;
       }
     }
   }
@@ -392,7 +396,11 @@ export async function cobrarClienteAgora(
   }
 
   if (result.falhas > 0 && result.enviadas + result.dryRun === 0) {
-    return { ok: false, message: "Falha ao enviar cobrança" };
+    const detalhe = result.ultimoErro?.trim();
+    return {
+      ok: false,
+      message: detalhe ? `Falha ao enviar cobrança: ${detalhe}` : "Falha ao enviar cobrança",
+    };
   }
 
   return { ok: true, message: "Cobrança registrada" };

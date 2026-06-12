@@ -60,7 +60,7 @@ Configure variáveis em **Production** e **Preview**:
 | `DEFAULT_ESCRITORIO_SLUG` | `e2-piloto` |
 | `INBOUND_EMAIL_SECRET` | gerar (`openssl rand -hex 32`) |
 | `WORKER_SECRET` | gerar |
-| `CRON_SECRET` | gerado automaticamente pelo Vercel Cron |
+| `CRON_SECRET` | gerar (`openssl rand -hex 32`); o Vercel Cron envia como `Authorization: Bearer <valor>` |
 | `WHATSAPP_VERIFY_TOKEN` | Meta App Dashboard |
 | `WHATSAPP_APP_SECRET` | Meta |
 | `WHATSAPP_ACCESS_TOKEN` | Meta |
