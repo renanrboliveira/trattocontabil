@@ -33,6 +33,19 @@ describe("checkPdfGuards", () => {
     });
   });
 
+  it("rejects PDF with more than 100 pages", () => {
+    const pages = Array.from(
+      { length: 101 },
+      (_, i) => `${i + 1} 0 obj<</Type /Page>>endobj`
+    ).join("\n");
+    const pdf = Buffer.from(`%PDF-1.4\n${pages}\n%%EOF`, "latin1");
+    const result = checkPdfGuards(pdf);
+    expect(result).toMatchObject({
+      ok: false,
+      motivo: expect.stringContaining("100 páginas"),
+    });
+  });
+
   it("rejects oversized PDF", () => {
     const huge = Buffer.alloc(31 * 1024 * 1024, 0x25);
     const result = checkPdfGuards(huge);

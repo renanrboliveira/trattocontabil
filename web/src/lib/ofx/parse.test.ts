@@ -53,6 +53,30 @@ describe("parseOfx", () => {
     });
   });
 
+  it("throws on content without OFX block", () => {
+    expect(() => parseOfx(Buffer.from("conteudo qualquer"))).toThrow(
+      "OFX inválido: STMTRS não encontrado"
+    );
+  });
+
+  it("returns empty transactions when BANKTRANLIST is missing", () => {
+    const ofx = Buffer.from(`<OFX>
+<BANKMSGSRSV1>
+<STMTTRNRS>
+<STMTRS>
+<BANKACCTFROM>
+<BANKID>341
+</BANKACCTFROM>
+</STMTRS>
+</STMTTRNRS>
+</BANKMSGSRSV1>
+</OFX>
+`);
+    const result = parseOfx(ofx);
+    expect(result.transacoes).toEqual([]);
+    expect(result.bancoCodigo).toBe("341");
+  });
+
   it("throws when STMTRS is missing", () => {
     expect(() => parseOfx(loadFixture("ofx-sem-stmtrs.ofx"))).toThrow(
       "OFX inválido: STMTRS não encontrado"
@@ -66,6 +90,42 @@ describe("parseOfx", () => {
     expect(result.transacoes[0].data).toBe("2026-01-31");
     expect(result.transacoes[0].tipo).toBe("D");
     expect(result.transacoes[0].valor).toBe(75.5);
+  });
+
+  it("falls back to DTUSER, NAME and default description", () => {
+    const ofx = Buffer.from(`OFXHEADER:100
+
+<OFX>
+<BANKMSGSRSV1>
+<STMTTRNRS>
+<STMTRS>
+<BANKTRANLIST>
+<STMTTRN>
+<DTUSER>20260210120000
+<TRNAMT>100.00
+<NAME>DEPOSITO NAME
+</STMTTRN>
+<STMTTRN>
+<DTPOSTED>20260211120000
+<TRNAMT>-5.00
+</STMTTRN>
+</BANKTRANLIST>
+</STMTRS>
+</STMTTRNRS>
+</BANKMSGSRSV1>
+</OFX>
+`);
+    const result = parseOfx(ofx);
+
+    expect(result.dtStart).toBeUndefined();
+    expect(result.dtEnd).toBeUndefined();
+    expect(result.transacoes[0]).toMatchObject({
+      data: "2026-02-10",
+      descricao: "DEPOSITO NAME",
+      tipo: "C",
+    });
+    expect(result.transacoes[1].descricao).toBe("Sem descrição");
+    expect(result.transacoes[1].fitid).toBeUndefined();
   });
 
   it("parseOfxDate handles timezone suffix and short date fallback", () => {

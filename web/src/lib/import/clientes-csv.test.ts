@@ -40,6 +40,51 @@ describe("previewClientesCsv", () => {
     expect(preview.rows[0].regua_opt_in).toBe(true);
   });
 
+  it("reports empty file", () => {
+    const preview = previewClientesCsv("");
+    expect(preview.errors).toEqual([{ line: 0, message: "Arquivo vazio" }]);
+    expect(preview.rows).toHaveLength(0);
+  });
+
+  it("reports missing razao_social", () => {
+    const preview = previewClientesCsv(
+      "cnpj,razao_social\n12.345.678/0001-90,"
+    );
+    expect(preview.rows).toHaveLength(0);
+    expect(preview.errors[0].message).toContain("razao_social");
+  });
+
+  it("requires banco_nome when banco_codigo is present", () => {
+    const preview = previewClientesCsv(
+      "cnpj,razao_social,banco_codigo,banco_nome\n12.345.678/0001-90,Empresa X,341,"
+    );
+    expect(preview.rows).toHaveLength(0);
+    expect(preview.errors[0].message).toContain("banco_nome");
+  });
+
+  it("parses quoted fields with embedded delimiter and escaped quotes", () => {
+    const preview = previewClientesCsv(
+      'cnpj,razao_social\n12.345.678/0001-90,"Empresa ""ABC"", Ltda"'
+    );
+    expect(preview.errors).toHaveLength(0);
+    expect(preview.rows[0].razao_social).toBe('Empresa "ABC", Ltda');
+  });
+
+  it("parses negative regua_opt_in values as false", () => {
+    const preview = previewClientesCsv(
+      "cnpj,razao_social,regua_opt_in\n12.345.678/0001-90,Empresa X,nao"
+    );
+    expect(preview.rows[0].regua_opt_in).toBe(false);
+  });
+
+  it("detects semicolon delimiter", () => {
+    const preview = previewClientesCsv(
+      "cnpj;razao_social\n12.345.678/0001-90;Empresa Y"
+    );
+    expect(preview.errors).toHaveLength(0);
+    expect(preview.rows[0].razao_social).toBe("Empresa Y");
+  });
+
   it("reports missing required columns", () => {
     const preview = previewClientesCsv("razao_social,telefone\nEmpresa,11999");
     expect(preview.rows).toHaveLength(0);
