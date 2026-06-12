@@ -55,8 +55,8 @@ Configure variáveis em **Production** e **Preview**:
 | Variável | Origem |
 |----------|--------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | idem |
-| `SUPABASE_SERVICE_ROLE_KEY` | idem (server only) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Publishable key** (dashboard novo) ou legacy anon |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Secret key** (dashboard novo) ou legacy service_role |
 | `DEFAULT_ESCRITORIO_SLUG` | `e2-piloto` |
 | `INBOUND_EMAIL_SECRET` | gerar (`openssl rand -hex 32`) |
 | `WORKER_SECRET` | gerar |

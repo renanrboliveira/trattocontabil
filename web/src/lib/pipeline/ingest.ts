@@ -19,6 +19,7 @@ import {
   matchClienteByRemetente,
   resolveEscritorioBySlug,
 } from "@/lib/pipeline/routing";
+import { triggerWorkerProcess } from "@/lib/pipeline/trigger-worker";
 import { checkPdfGuards } from "@/lib/pdf/guards";
 import { processExtratoJob } from "@/lib/pipeline/process";
 
@@ -305,6 +306,8 @@ export async function ingestExtrato(
       extrato_id: persisted.extratoId,
       status: "pending",
     });
+
+    triggerWorkerProcess();
 
     return {
       extratoId: persisted.extratoId,

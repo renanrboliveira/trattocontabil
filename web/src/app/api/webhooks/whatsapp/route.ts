@@ -47,12 +47,18 @@ export async function GET(request: Request) {
   const mode = searchParams.get("hub.mode");
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
+  const expected = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
 
   if (
     mode === "subscribe" &&
-    token === process.env.WHATSAPP_VERIFY_TOKEN
+    expected &&
+    token?.trim() === expected &&
+    challenge
   ) {
-    return new NextResponse(challenge, { status: 200 });
+    return new NextResponse(challenge, {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    });
   }
 
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });

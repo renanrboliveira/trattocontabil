@@ -4,6 +4,7 @@ import { convertPdfWithCascade } from "@/lib/pdf/convert";
 import { checkPdfGuards } from "@/lib/pdf/guards";
 import type { PdfExtraction } from "@/lib/pdf/types";
 import { isOfxFile, isPdfFile, parseOfx } from "@/lib/ofx/parse";
+import { triggerWorkerProcess } from "@/lib/pipeline/trigger-worker";
 
 export type ProcessResult = {
   status: "convertido" | "triagem" | "erro";
@@ -100,6 +101,17 @@ async function markJobFailed(
   return attempts;
 }
 
+async function requeueJobForRetry(admin: SupabaseClient, extratoId: string) {
+  await admin
+    .from("pipeline_jobs")
+    .update({
+      status: "pending",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("extrato_id", extratoId);
+  triggerWorkerProcess();
+}
+
 async function processOfxExtrato(
   admin: SupabaseClient,
   extratoId: string,
@@ -168,6 +180,7 @@ async function processPdfExtrato(
 
   if (!process.env.ANTHROPIC_API_KEY) {
     const message = "Configuração incompleta: ANTHROPIC_API_KEY ausente";
+    const attempts = await markJobFailed(admin, extratoId, message, true);
     await admin
       .from("extratos")
       .update({
@@ -175,7 +188,9 @@ async function processPdfExtrato(
         triagem_motivo: message,
       })
       .eq("id", extratoId);
-    await markJobFailed(admin, extratoId, message, true);
+    if (attempts < MAX_JOB_ATTEMPTS) {
+      await requeueJobForRetry(admin, extratoId);
+    }
     return { status: "triagem", message };
   }
 
@@ -321,13 +336,7 @@ export async function processExtratoJob(
         .eq("id", extratoId);
 
       if (attempts < MAX_JOB_ATTEMPTS) {
-        await admin
-          .from("pipeline_jobs")
-          .update({
-            status: "pending",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("extrato_id", extratoId);
+        await requeueJobForRetry(admin, extratoId);
       }
 
       return { status: "triagem", message };
@@ -345,7 +354,32 @@ export async function processExtratoJob(
 export async function processPendingJobs(
   admin: SupabaseClient,
   limit = 5
-): Promise<{ processed: number; errors: number; triagem: number }> {
+): Promise<{ processed: number; errors: number; triagem: number; requeued: number }> {
+  const staleBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+  const { data: requeuedFailed } = await admin
+    .from("pipeline_jobs")
+    .update({
+      status: "pending",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("status", "failed")
+    .lt("attempts", MAX_JOB_ATTEMPTS)
+    .select("extrato_id");
+
+  const { data: requeuedStale } = await admin
+    .from("pipeline_jobs")
+    .update({
+      status: "pending",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("status", "processing")
+    .lt("updated_at", staleBefore)
+    .select("extrato_id");
+
+  const requeued =
+    (requeuedFailed?.length ?? 0) + (requeuedStale?.length ?? 0);
+
   const { data: jobs } = await admin
     .from("pipeline_jobs")
     .select("extrato_id")
@@ -364,5 +398,5 @@ export async function processPendingJobs(
     else errors += 1;
   }
 
-  return { processed, errors, triagem };
+  return { processed, errors, triagem, requeued };
 }
