@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ingestExtrato } from "@/lib/pipeline/ingest";
@@ -8,22 +7,7 @@ import {
 } from "@/lib/pipeline/routing";
 import { normalizeOptOutText } from "@/lib/regua/dates";
 import { sendSessionText } from "@/lib/whatsapp/send";
-
-function verifyMetaSignature(payload: string, signature: string | null): boolean {
-  const secret = process.env.WHATSAPP_APP_SECRET;
-  // Fail closed: sem secret configurado, nenhuma requisição é aceita.
-  if (!secret) return false;
-  if (!signature) return false;
-  const expected = `sha256=${crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("hex")}`;
-  if (signature.length !== expected.length) return false;
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
-}
+import { verifyMetaSignature } from "@/lib/whatsapp/verify-signature";
 
 async function downloadWhatsAppMedia(mediaId: string): Promise<Buffer> {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;

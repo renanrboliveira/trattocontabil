@@ -1,0 +1,4 @@
+cnpj,razao_social,telefone,email,contato_nome,regua_opt_in,banco_codigo,banco_nome,conta_ref
+123,CNPJ Curto Demais,11999998888,teste@email.com,,,,,
+12.345.678/0001-90,Duplicata Um,11988887777,dup@email.com,Ana,sim,341,Itaú,111
+12.345.678/0001-90,Duplicata Dois,11988887777,dup@email.com,Ana,sim,237,Bradesco,222

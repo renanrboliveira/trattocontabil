@@ -1,0 +1,4 @@
+cnpj,razao_social,telefone,email,contato_nome,regua_opt_in,banco_codigo,banco_nome,conta_ref
+12.345.678/0001-90,Empresa Alpha Ltda,(11) 98765-4321,Contato@Alpha.COM,João Silva,sim,341,Itaú,12345-6
+12.345.678/0001-90,Empresa Alpha Ltda,,,,,237,Bradesco,55555-1
+98.765.432/0001-10,Beta Serviços SA,+55 21 99999-8888,beta@email.com,,1,001,BB,principal

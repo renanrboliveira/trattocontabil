@@ -1,0 +1,12 @@
+# OFX sem STMTRS — exercita erro quando bloco de extrato está ausente
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+
+<OFX>
+<BANKMSGSRSV1>
+<STMTTRNRS>
+<TRNUID>1
+</STMTTRNRS>
+</BANKMSGSRSV1>
+</OFX>
