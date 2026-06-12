@@ -52,7 +52,8 @@ export type ClienteRegua = ClienteComBancos & {
 
 export function calcularTentativa(
   cobrancas: CobrancaExistente[],
-  hoje: Date
+  hoje: Date,
+  forcar = false
 ): number | null {
   const enviadas = cobrancas.filter(
     (c) => c.status === "enviada" || c.status === "dry_run"
@@ -62,12 +63,44 @@ export function calcularTentativa(
   const hojeCobrancas = cobrancas.filter((c) =>
     isSameUtcDay(new Date(c.created_at), hoje)
   );
+
+  if (forcar) {
+    if (hojeCobrancas.some((c) => c.status === "enviada")) {
+      return null;
+    }
+
+    const retentavelHoje = hojeCobrancas
+      .filter((c) =>
+        c.status === "dry_run" || c.status === "falha" || c.status === "pendente"
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
+
+    if (retentavelHoje) {
+      return retentavelHoje.tentativa;
+    }
+  } else if (
+    hojeCobrancas.some(
+      (c) => c.status === "enviada" || c.status === "dry_run"
+    )
+  ) {
+    return null;
+  }
+
   const falhaAnterior = cobrancas.find(
     (c) => c.status === "falha" && !isSameUtcDay(new Date(c.created_at), hoje)
   );
 
-  if (hojeCobrancas.some((c) => c.status !== "falha")) {
-    return null;
+  const falhaHoje = hojeCobrancas.find((c) => c.status === "falha");
+  if (falhaHoje) {
+    return falhaHoje.tentativa;
+  }
+
+  const pendenteHoje = hojeCobrancas.find((c) => c.status === "pendente");
+  if (pendenteHoje) {
+    return pendenteHoje.tentativa;
   }
 
   if (falhaAnterior) {
@@ -130,7 +163,11 @@ export function selecionarCobrancas(params: {
         c.cliente_id === cliente.id && c.competencia_id === params.competenciaId
     );
 
-    const tentativa = calcularTentativa(cobrancasCliente, params.hoje);
+    const tentativa = calcularTentativa(
+      cobrancasCliente,
+      params.hoje,
+      params.forcar ?? false
+    );
     if (tentativa === null) continue;
 
     const contatoNome = cliente.contato_nome?.trim() || cliente.razao_social;
