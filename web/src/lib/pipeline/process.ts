@@ -3,7 +3,7 @@ import { resolveBancoCodigo } from "@/lib/bancos/resolve";
 import { convertPdfWithCascade } from "@/lib/pdf/convert";
 import { checkPdfGuards } from "@/lib/pdf/guards";
 import type { PdfExtraction } from "@/lib/pdf/types";
-import { isOfxFile, isPdfFile, parseOfx } from "@/lib/ofx/parse";
+import { classifyExtratoFile, isPdfFile, parseOfx } from "@/lib/ofx/parse";
 import { triggerWorkerProcess } from "@/lib/pipeline/trigger-worker";
 
 export type ProcessResult = {
@@ -299,11 +299,17 @@ export async function processExtratoJob(
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    if (isPdfExtrato(extrato)) {
+    const tipo = classifyExtratoFile(
+      extrato.arquivo_nome ?? "",
+      extrato.arquivo_mime,
+      buffer
+    );
+
+    if (tipo === "pdf") {
       return processPdfExtrato(admin, extratoId, buffer, extrato);
     }
 
-    if (!isOfxFile(extrato.arquivo_nome ?? "", extrato.arquivo_mime)) {
+    if (tipo !== "ofx") {
       throw new Error("Formato não suportado para processamento");
     }
 

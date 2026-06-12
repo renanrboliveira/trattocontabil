@@ -2,8 +2,8 @@ import { readFileSync } from "fs";
 import path from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  classifyExtratoFile,
   inferCompetencia,
-  isOfxFile,
   isPdfFile,
   parseOfx,
   type ParsedOfx,
@@ -106,16 +106,56 @@ describe("inferCompetencia", () => {
   });
 });
 
-describe("isOfxFile / isPdfFile", () => {
-  it("detects OFX by extension and MIME", () => {
-    expect(isOfxFile("extrato.ofx")).toBe(true);
-    expect(isOfxFile("extrato.qfx")).toBe(true);
-    expect(isOfxFile("extrato.OFX")).toBe(true);
-    expect(isOfxFile("extrato.txt", "application/x-ofx")).toBe(true);
-    expect(isOfxFile("extrato.bin", "application/octet-stream")).toBe(true);
-    expect(isOfxFile("extrato.pdf")).toBe(false);
+describe("classifyExtratoFile", () => {
+  const pdfBuffer = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\n%%EOF", "latin1");
+
+  it("classifies PDF by magic bytes even with generic mime", () => {
+    expect(
+      classifyExtratoFile("extrato.pdf", "application/octet-stream", pdfBuffer)
+    ).toBe("pdf");
   });
 
+  it("classifies PDF by magic bytes without extension or mime", () => {
+    expect(classifyExtratoFile("documento", null, pdfBuffer)).toBe("pdf");
+  });
+
+  it("classifies OFX by content even with generic mime and no extension", () => {
+    expect(
+      classifyExtratoFile(
+        "extrato",
+        "application/octet-stream",
+        loadFixture("ofx-multi.ofx")
+      )
+    ).toBe("ofx");
+  });
+
+  it("falls back to extension/mime when content is inconclusive", () => {
+    expect(classifyExtratoFile("extrato.ofx", null, Buffer.from(""))).toBe(
+      "ofx"
+    );
+    expect(classifyExtratoFile("extrato.QFX", null, Buffer.from(""))).toBe(
+      "ofx"
+    );
+    expect(
+      classifyExtratoFile("extrato.txt", "application/x-ofx", Buffer.from(""))
+    ).toBe("ofx");
+    expect(classifyExtratoFile("extrato.pdf", null, Buffer.from(""))).toBe(
+      "pdf"
+    );
+  });
+
+  it("returns null for unknown content with generic mime", () => {
+    expect(
+      classifyExtratoFile(
+        "dados.bin",
+        "application/octet-stream",
+        Buffer.from("conteudo qualquer")
+      )
+    ).toBeNull();
+  });
+});
+
+describe("isPdfFile", () => {
   it("detects PDF by extension and MIME", () => {
     expect(isPdfFile("extrato.pdf")).toBe(true);
     expect(isPdfFile("extrato.PDF")).toBe(true);

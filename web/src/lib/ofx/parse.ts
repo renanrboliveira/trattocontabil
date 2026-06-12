@@ -89,19 +89,34 @@ export function inferCompetencia(ofx: ParsedOfx): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export function isOfxFile(filename: string, mime?: string | null): boolean {
-  const lower = filename.toLowerCase();
-  return (
-    lower.endsWith(".ofx") ||
-    lower.endsWith(".qfx") ||
-    mime === "application/x-ofx" ||
-    mime === "text/plain" ||
-    mime === "application/octet-stream"
-  );
-}
-
 export function isPdfFile(filename: string, mime?: string | null): boolean {
   return (
     filename.toLowerCase().endsWith(".pdf") || mime === "application/pdf"
   );
+}
+
+/**
+ * Classifica o arquivo pelo conteúdo (magic bytes / marcador OFX) antes de
+ * extensão/mime — mimes genéricos como application/octet-stream não podem
+ * decidir o formato sozinhos.
+ */
+export function classifyExtratoFile(
+  filename: string,
+  mime: string | null | undefined,
+  buffer: Buffer
+): "pdf" | "ofx" | null {
+  const head = buffer.subarray(0, 4096).toString("latin1");
+  if (head.startsWith("%PDF-")) return "pdf";
+  if (head.includes("OFXHEADER") || head.includes("<OFX")) return "ofx";
+  if (isPdfFile(filename, mime)) return "pdf";
+  // Fallback estrito: mimes genéricos (octet-stream, text/plain) não decidem.
+  const lower = filename.toLowerCase();
+  if (
+    lower.endsWith(".ofx") ||
+    lower.endsWith(".qfx") ||
+    mime === "application/x-ofx"
+  ) {
+    return "ofx";
+  }
+  return null;
 }

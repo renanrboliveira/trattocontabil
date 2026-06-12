@@ -8,9 +8,8 @@ import {
   parseCompetencia,
 } from "@/lib/pipeline/idempotency";
 import {
+  classifyExtratoFile,
   inferCompetencia,
-  isOfxFile,
-  isPdfFile,
   parseOfx,
 } from "@/lib/ofx/parse";
 import {
@@ -131,10 +130,10 @@ export async function ingestExtrato(
 
   const escritorio = await resolveEscritorioBySlug(admin, slug);
   const fileHash = hashFile(input.buffer);
-  const isPdf = isPdfFile(input.filename, input.mime);
-  const isOfx = isOfxFile(input.filename, input.mime);
+  const tipo = classifyExtratoFile(input.filename, input.mime, input.buffer);
+  const isPdf = tipo === "pdf";
 
-  if (!isPdf && !isOfx) {
+  if (!tipo) {
     return {
       extratoId: "",
       status: "erro",
@@ -143,7 +142,7 @@ export async function ingestExtrato(
   }
 
   let parsed: ReturnType<typeof parseOfx> | undefined;
-  if (isOfx) {
+  if (tipo === "ofx") {
     try {
       parsed = parseOfx(input.buffer);
     } catch (err) {
