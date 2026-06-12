@@ -103,4 +103,14 @@ describe("competenciaFromDate / parseCompetencia", () => {
     expect(competenciaFromDate(date)).toBe("2026-09");
     expect(parseCompetencia("2026-09")).toEqual({ ano: 2026, mes: 9 });
   });
+
+  it("returns null for out-of-range month", () => {
+    expect(parseCompetencia("2026-13")).toBeNull();
+    expect(parseCompetencia("2026-00")).toBeNull();
+  });
+
+  it("returns null for malformed input", () => {
+    expect(parseCompetencia("invalid")).toBeNull();
+    expect(parseCompetencia("")).toBeNull();
+  });
 });

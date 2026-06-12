@@ -340,6 +340,7 @@ export async function ingestExtrato(
 }
 
 export function formatCompetenciaLabel(competencia: string): string {
-  const { ano, mes } = parseCompetencia(competencia);
-  return `${String(mes).padStart(2, "0")}/${ano}`;
+  const parsed = parseCompetencia(competencia);
+  if (!parsed) return competencia;
+  return `${String(parsed.mes).padStart(2, "0")}/${parsed.ano}`;
 }

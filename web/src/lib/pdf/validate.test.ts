@@ -33,15 +33,18 @@ describe("validatePdfExtraction", () => {
 
   it("rejects illegible PDF", () => {
     const result = validatePdfExtraction(baseExtraction({ ilegivel: true }));
-    expect(result.ok).toBe(false);
-    expect(result.ok === false && result.motivo).toContain("ilegível");
+    expect(result).toMatchObject({
+      ok: false,
+      motivo: expect.stringContaining("ilegível"),
+    });
   });
 
   it("rejects zero transactions", () => {
     const result = validatePdfExtraction(baseExtraction({ transacoes: [] }));
-    expect(result.ok === false && result.motivo).toBe(
-      "Nenhuma transação identificada no PDF"
-    );
+    expect(result).toEqual({
+      ok: false,
+      motivo: "Nenhuma transação identificada no PDF",
+    });
   });
 
   it("rejects invalid date including 2026-02-30", () => {
@@ -52,9 +55,10 @@ describe("validatePdfExtraction", () => {
         ],
       })
     );
-    expect(result.ok === false && result.motivo).toBe(
-      "Datas de transação inválidas ou incompletas"
-    );
+    expect(result).toEqual({
+      ok: false,
+      motivo: "Datas de transação inválidas ou incompletas",
+    });
   });
 
   it("rejects zero or negative values", () => {
@@ -91,9 +95,10 @@ describe("validatePdfExtraction", () => {
         ],
       })
     );
-    expect(result.ok === false && result.motivo).toBe(
-      "Tipo de transação inválido"
-    );
+    expect(result).toEqual({
+      ok: false,
+      motivo: "Tipo de transação inválido",
+    });
   });
 
   it("rejects when below 80% competencia threshold", () => {
@@ -109,9 +114,10 @@ describe("validatePdfExtraction", () => {
         ],
       })
     );
-    expect(result.ok === false && result.motivo).toBe(
-      "Menos de 80% das transações dentro da competência inferida"
-    );
+    expect(result).toEqual({
+      ok: false,
+      motivo: "Menos de 80% das transações dentro da competência inferida",
+    });
   });
 
   it("accepts when exactly at 80% competencia threshold", () => {
@@ -157,8 +163,10 @@ describe("validatePdfExtraction", () => {
         ],
       })
     );
-    expect(result.ok).toBe(false);
-    expect(result.ok === false && result.motivo).toMatch(/Saldos não fecham/);
+    expect(result).toMatchObject({
+      ok: false,
+      motivo: expect.stringMatching(/Saldos não fecham/),
+    });
   });
 
   it("infers competencia by mode of transaction months", () => {

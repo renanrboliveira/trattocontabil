@@ -27,14 +27,18 @@ describe("checkPdfGuards", () => {
       "latin1"
     );
     const result = checkPdfGuards(encrypted);
-    expect(result.ok).toBe(false);
-    expect(result.ok === false && result.motivo).toContain("senha");
+    expect(result).toMatchObject({
+      ok: false,
+      motivo: expect.stringContaining("senha"),
+    });
   });
 
   it("rejects oversized PDF", () => {
     const huge = Buffer.alloc(31 * 1024 * 1024, 0x25);
     const result = checkPdfGuards(huge);
-    expect(result.ok).toBe(false);
-    expect(result.ok === false && result.motivo).toContain("30MB");
+    expect(result).toMatchObject({
+      ok: false,
+      motivo: expect.stringContaining("30MB"),
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { parseCompParam } from "@/lib/competencias";
 
 export function hashFile(buffer: Buffer): string {
   return createHash("sha256").update(buffer).digest("hex");
@@ -38,9 +39,10 @@ export function competenciaFromDate(date: Date): string {
   return `${y}-${m}`;
 }
 
-export function parseCompetencia(competencia: string): { ano: number; mes: number } {
-  const [ano, mes] = competencia.split("-").map(Number);
-  return { ano, mes };
+export function parseCompetencia(
+  competencia: string
+): { ano: number; mes: number } | null {
+  return parseCompParam(competencia);
 }
 
 export function normalizePhone(phone: string): string {

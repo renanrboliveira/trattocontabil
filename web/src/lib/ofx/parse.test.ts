@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   inferCompetencia,
   isOfxFile,
@@ -77,6 +77,10 @@ describe("parseOfx", () => {
 });
 
 describe("inferCompetencia", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("uses dtEnd when present", () => {
     const ofx: ParsedOfx = {
       dtEnd: "2026-07-31",
@@ -96,9 +100,9 @@ describe("inferCompetencia", () => {
   });
 
   it("falls back to current month when no dtEnd or transactions", () => {
-    const now = new Date();
-    const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    expect(inferCompetencia({ transacoes: [] })).toBe(expected);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
+    expect(inferCompetencia({ transacoes: [] })).toBe("2026-06");
   });
 });
 
