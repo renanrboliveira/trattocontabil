@@ -63,9 +63,24 @@ export async function POST(request: Request) {
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
+      // DEBUG temporário: motivo real de não-entrega (status failed + errors). Remover após diagnóstico.
+      for (const status of change.value?.statuses ?? []) {
+        console.info("[whatsapp][status]", {
+          status: status.status,
+          recipient: status.recipient_id,
+          errors: status.errors,
+        });
+      }
+
       const messages = change.value?.messages ?? [];
       for (const message of messages) {
         const from = message.from as string;
+        // DEBUG temporário: descobrir o wa_id canônico (9º dígito). Remover após diagnóstico.
+        console.info("[whatsapp][inbound]", {
+          from,
+          type: message.type,
+          wa_id: change.value?.contacts?.[0]?.wa_id ?? null,
+        });
 
         if (message.type === "text" && message.text?.body) {
           const normalized = normalizeOptOutText(message.text.body);

@@ -30,6 +30,7 @@ async function postWhatsAppMessage(body: Record<string, unknown>): Promise<SendR
   );
 
   const data = (await res.json()) as {
+    contacts?: { input?: string; wa_id?: string }[];
     messages?: { id?: string }[];
     error?: { message?: string };
   };
@@ -40,7 +41,12 @@ async function postWhatsAppMessage(body: Record<string, unknown>): Promise<SendR
   }
 
   const wamid = data.messages?.[0]?.id ?? null;
-  console.info("[whatsapp] send ok", { wamid });
+  // DEBUG temporário: input vs wa_id revela normalização do 9º dígito. Remover após diagnóstico.
+  console.info("[whatsapp] send ok", {
+    wamid,
+    input: data.contacts?.[0]?.input ?? null,
+    wa_id: data.contacts?.[0]?.wa_id ?? null,
+  });
   return { ok: true, wamid };
 }
 

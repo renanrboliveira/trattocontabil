@@ -21,78 +21,13 @@ import { createClient, getUserEscritorioId } from "@/lib/supabase/server";
 import { unwrapRelation } from "@/lib/supabase/relations";
 import { compLabel, compParam, parseCompParam } from "@/lib/competencias";
 import { derivePendencias, filterPendencias } from "@/app/painel/derive";
+import { buildCobrancaMap, formatCobrancaResumo } from "@/lib/regua/resumo";
 import { CobrarAgoraButton } from "@/app/painel/cobrar-agora-button";
 import { signOutAction, uploadExtratoAction } from "@/app/painel/actions";
 import { UploadForm } from "@/app/painel/upload-form";
 import { ImportClientesForm } from "@/app/painel/import-clientes-form";
 
 const PAGE_SIZE = 25;
-
-type CobrancaResumo = {
-  tentativas: number;
-  ultima: string | null;
-  optOut: boolean;
-};
-
-function formatCobrancaResumo(resumo: CobrancaResumo | undefined): string | null {
-  if (!resumo) return null;
-  if (resumo.optOut) return "opt-out";
-  if (resumo.tentativas === 0) return null;
-  const ultima = resumo.ultima
-    ? new Date(resumo.ultima).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        timeZone: "America/Sao_Paulo",
-      })
-    : null;
-  if (ultima) {
-    return `Cobrado ${resumo.tentativas}× · última ${ultima}`;
-  }
-  return `Cobrado ${resumo.tentativas}×`;
-}
-
-function buildCobrancaMap(
-  cobrancas: {
-    cliente_id: string;
-    status: string;
-    sent_at: string | null;
-    created_at: string;
-  }[],
-  clientesOptOut: Map<string, boolean>
-): Map<string, CobrancaResumo> {
-  const map = new Map<string, CobrancaResumo>();
-
-  for (const cobranca of cobrancas) {
-    if (cobranca.status !== "enviada" && cobranca.status !== "dry_run") continue;
-
-    const existing = map.get(cobranca.cliente_id) ?? {
-      tentativas: 0,
-      ultima: null,
-      optOut: clientesOptOut.get(cobranca.cliente_id) ?? false,
-    };
-
-    existing.tentativas += 1;
-    const quando = cobranca.sent_at ?? cobranca.created_at;
-    if (!existing.ultima || quando > existing.ultima) {
-      existing.ultima = quando;
-    }
-
-    map.set(cobranca.cliente_id, existing);
-  }
-
-  for (const [clienteId, optOut] of clientesOptOut) {
-    if (!optOut) continue;
-    const existing = map.get(clienteId) ?? {
-      tentativas: 0,
-      ultima: null,
-      optOut: true,
-    };
-    existing.optOut = true;
-    map.set(clienteId, existing);
-  }
-
-  return map;
-}
 
 function painelHref(params: {
   comp?: string;
@@ -168,6 +103,7 @@ export default async function PainelPage({
   let cobrancasCompetencia: {
     cliente_id: string;
     status: string;
+    tentativa: number;
     sent_at: string | null;
     created_at: string;
   }[] = [];
@@ -183,7 +119,7 @@ export default async function PainelPage({
         .order("created_at", { ascending: false }),
       supabase
         .from("cobrancas")
-        .select("cliente_id, status, sent_at, created_at")
+        .select("cliente_id, status, tentativa, sent_at, created_at")
         .eq("escritorio_id", escritorioId)
         .eq("competencia_id", selecionada.id),
     ]);

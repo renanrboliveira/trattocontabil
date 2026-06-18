@@ -55,10 +55,20 @@ export function calcularTentativa(
   hoje: Date,
   forcar = false
 ): number | null {
-  const enviadas = cobrancas.filter(
-    (c) => c.status === "enviada" || c.status === "dry_run"
+  // Tentativas concluídas para fins de cadência (envio real ou dry_run).
+  // Contamos números distintos: linhas duplicadas da mesma tentativa não escalam.
+  const concluidas = new Set(
+    cobrancas
+      .filter((c) => c.status === "enviada" || c.status === "dry_run")
+      .map((c) => c.tentativa)
   );
-  if (enviadas.length >= 3) return null;
+  if (concluidas.size >= 3) return null;
+
+  // Tentativas com envio real concluído nunca devem ser reenviadas — uma
+  // `falha` residual da mesma tentativa não é retentável depois do sucesso.
+  const enviadasReais = new Set(
+    cobrancas.filter((c) => c.status === "enviada").map((c) => c.tentativa)
+  );
 
   const hojeCobrancas = cobrancas.filter((c) =>
     isSameUtcDay(new Date(c.created_at), hoje)
@@ -70,8 +80,12 @@ export function calcularTentativa(
     }
 
     const retentavelHoje = hojeCobrancas
-      .filter((c) =>
-        c.status === "dry_run" || c.status === "falha" || c.status === "pendente"
+      .filter(
+        (c) =>
+          (c.status === "dry_run" ||
+            c.status === "falha" ||
+            c.status === "pendente") &&
+          !enviadasReais.has(c.tentativa)
       )
       .sort(
         (a, b) =>
@@ -90,15 +104,22 @@ export function calcularTentativa(
   }
 
   const falhaAnterior = cobrancas.find(
-    (c) => c.status === "falha" && !isSameUtcDay(new Date(c.created_at), hoje)
+    (c) =>
+      c.status === "falha" &&
+      !isSameUtcDay(new Date(c.created_at), hoje) &&
+      !enviadasReais.has(c.tentativa)
   );
 
-  const falhaHoje = hojeCobrancas.find((c) => c.status === "falha");
+  const falhaHoje = hojeCobrancas.find(
+    (c) => c.status === "falha" && !enviadasReais.has(c.tentativa)
+  );
   if (falhaHoje) {
     return falhaHoje.tentativa;
   }
 
-  const pendenteHoje = hojeCobrancas.find((c) => c.status === "pendente");
+  const pendenteHoje = hojeCobrancas.find(
+    (c) => c.status === "pendente" && !enviadasReais.has(c.tentativa)
+  );
   if (pendenteHoje) {
     return pendenteHoje.tentativa;
   }
@@ -107,7 +128,7 @@ export function calcularTentativa(
     return falhaAnterior.tentativa;
   }
 
-  return enviadas.length + 1;
+  return concluidas.size + 1;
 }
 
 export function selecionarCobrancas(params: {
